@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>AutoJudge — Problem Difficulty Predictor</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: "Segoe UI", system-ui, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #0f172a, #020617);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      color: #e5e7eb;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 520px;
+      background: #020617;
+      border-radius: 14px;
+      padding: 28px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+    }
+
+    h1 {
+      font-size: 26px;
+      margin-bottom: 8px;
+      text-align: center;
+      color: #f8fafc;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: #94a3b8;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 14px;
+      color: #cbd5f5;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 130px;
+      resize: none;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid #1e293b;
+      background: #020617;
+      color: #f8fafc;
+      font-size: 14px;
+      margin-bottom: 18px;
+      outline: none;
+    }
+
+    textarea:focus {
+      border-color: #60a5fa;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+      color: white;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.1s ease, box-shadow 0.1s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
+    }
+
+    .result {
+      margin-top: 20px;
+      padding: 14px;
+      border-radius: 10px;
+      background: #020617;
+      border: 1px solid #1e293b;
+      text-align: center;
+      font-size: 16px;
+      font-weight: 600;
+      color: #93c5fd;
+      min-height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .footer {
+      margin-top: 16px;
+      font-size: 12px;
+      text-align: center;
+      color: #64748b;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="card">
+    <h1>AutoJudge</h1>
+    <p class="subtitle">Programming Problem Difficulty Predictor</p>
+
+    <label for="problem">Paste a programming problem statement</label>
+    <textarea id="problem" placeholder="e.g. Implement Dijkstra's algorithm using priority queue"></textarea>
+
+    <button onclick="predict()">Predict Difficulty</button>
+
+    <div class="result" id="result">
+      Waiting for input…
+    </div>
+
+    <div class="footer">
+      Powered by ML · TF-IDF + Naive Bayes
+    </div>
+  </div>
+
+  <script>
+    async function predict() {
+      const text = document.getElementById("problem").value.trim();
+      const resultDiv = document.getElementById("result");
+
+      if (!text) {
+        resultDiv.textContent = "Please enter a problem statement.";
+        return;
+      }
+
+      resultDiv.textContent = "Predicting…";
+
+      try {
+        const response = await fetch("/predict", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ problem_statement: text })
+        });
+
+        const data = await response.json();
+        resultDiv.textContent = "Predicted Difficulty: " + data.predicted_difficulty;
+      } catch (err) {
+        resultDiv.textContent = "Error contacting server.";
+      }
+    }
+  </script>
+</body>
+</html>
