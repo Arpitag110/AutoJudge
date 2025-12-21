@@ -133,3 +133,9 @@ python app.py
 
 3. Open in browser
 http://127.0.0.1:5000/
+
+# Live Demo
+
+🔗 https://autojudge.onrender.com
+
+> Note: First request may take a few seconds due to free-tier cold start.
