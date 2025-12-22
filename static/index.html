@@ -26,14 +26,14 @@
       width: 100%;
       max-width: 520px;
       background: #020617;
-      border-radius: 14px;
+      border-radius: 16px;
       padding: 28px;
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
     }
 
     h1 {
-      font-size: 26px;
-      margin-bottom: 8px;
+      font-size: 28px;
+      margin-bottom: 6px;
       text-align: center;
       color: #f8fafc;
     }
@@ -42,7 +42,7 @@
       font-size: 14px;
       color: #94a3b8;
       text-align: center;
-      margin-bottom: 20px;
+      margin-bottom: 24px;
     }
 
     label {
@@ -57,12 +57,12 @@
       min-height: 130px;
       resize: none;
       padding: 12px;
-      border-radius: 10px;
+      border-radius: 12px;
       border: 1px solid #1e293b;
       background: #020617;
       color: #f8fafc;
       font-size: 14px;
-      margin-bottom: 18px;
+      margin-bottom: 20px;
       outline: none;
     }
 
@@ -72,14 +72,15 @@
 
     button {
       width: 100%;
-      padding: 12px;
-      border-radius: 10px;
+      padding: 13px;
+      border-radius: 12px;
       border: none;
       background: linear-gradient(135deg, #3b82f6, #2563eb);
       color: white;
       font-size: 16px;
       font-weight: 600;
       cursor: pointer;
+      margin-bottom: 14px;
       transition: transform 0.1s ease, box-shadow 0.1s ease;
     }
 
@@ -89,23 +90,32 @@
     }
 
     .result {
-      margin-top: 20px;
-      padding: 14px;
-      border-radius: 10px;
+      margin-top: 6px;
+      padding: 18px;
+      border-radius: 14px;
       background: #020617;
       border: 1px solid #1e293b;
-      text-align: center;
-      font-size: 16px;
-      font-weight: 600;
-      color: #93c5fd;
-      min-height: 48px;
+      min-height: 72px;
       display: flex;
-      align-items: center;
+      flex-direction: column;
       justify-content: center;
+      gap: 10px;
+      text-align: center;
+    }
+
+    .result .label {
+      font-size: 13px;
+      color: #94a3b8;
+    }
+
+    .result .value {
+      font-size: 20px;
+      font-weight: 700;
+      color: #93c5fd;
     }
 
     .footer {
-      margin-top: 16px;
+      margin-top: 18px;
       font-size: 12px;
       text-align: center;
       color: #64748b;
@@ -119,16 +129,20 @@
     <p class="subtitle">Programming Problem Difficulty Predictor</p>
 
     <label for="problem">Paste a programming problem statement</label>
-    <textarea id="problem" placeholder="e.g. Implement Dijkstra's algorithm using priority queue"></textarea>
+    <textarea
+      id="problem"
+      placeholder="e.g. Implement segment tree with lazy propagation"
+    ></textarea>
 
     <button onclick="predict()">Predict Difficulty</button>
 
     <div class="result" id="result">
-      Waiting for input…
+      <div class="label">Status</div>
+      <div class="value">Waiting for input…</div>
     </div>
 
     <div class="footer">
-      Powered by ML · TF-IDF + Naive Bayes
+      Powered by ML · TF-IDF · Classification + Regression
     </div>
   </div>
 
@@ -138,11 +152,17 @@
       const resultDiv = document.getElementById("result");
 
       if (!text) {
-        resultDiv.textContent = "Please enter a problem statement.";
+        resultDiv.innerHTML = `
+          <div class="label">Error</div>
+          <div class="value">Please enter a problem statement</div>
+        `;
         return;
       }
 
-      resultDiv.textContent = "Predicting…";
+      resultDiv.innerHTML = `
+        <div class="label">Status</div>
+        <div class="value">Predicting…</div>
+      `;
 
       try {
         const response = await fetch("/predict", {
@@ -154,9 +174,22 @@
         });
 
         const data = await response.json();
-        resultDiv.textContent = "Predicted Difficulty: " + data.predicted_difficulty;
+
+        resultDiv.innerHTML = `
+          <div>
+            <div class="label">Predicted Difficulty</div>
+            <div class="value">${data.final_difficulty.toUpperCase()}</div>
+          </div>
+          <div>
+            <div class="label">Predicted Score</div>
+            <div class="value">${data.predicted_score}</div>
+          </div>
+        `;
       } catch (err) {
-        resultDiv.textContent = "Error contacting server.";
+        resultDiv.innerHTML = `
+          <div class="label">Error</div>
+          <div class="value">Unable to contact server</div>
+        `;
       }
     }
   </script>

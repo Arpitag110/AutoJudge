@@ -1,107 +1,127 @@
-# AutoJudge — Programming Problem Difficulty Predictor
+# AutoJudge
+Predicting Programming Problem Difficulty using Machine Learning
 
-AutoJudge is a machine learning–based system that predicts the difficulty level (Easy / Medium / Hard) of a programming problem based solely on its problem statement text.
-
-The project was built as part of an ACM open project to explore Natural Language Processing (NLP) and machine learning pipelines, while also understanding real-world challenges such as data quality, model evaluation, and deployment.
+# Overview
+AutoJudge is a machine learning–based system that predicts the difficulty of programming problems from their textual descriptions. Given a problem statement, the system outputs:
+A difficulty category: Easy / Medium / Hard
+A numerical difficulty score on a continuous scale
+The goal of this project is to explore whether problem difficulty can be inferred purely from natural language descriptions, without access to constraints, test cases, or editorial information.
 
 # Features
+Text-based difficulty prediction
+Dual-model approach:
+Classification (Easy / Medium / Hard)
+Regression (continuous difficulty score)
+Cross-validated evaluation
+Web interface using Flask
+Hybrid ML + rule-based refinement for better reliability
 
-Predicts difficulty of unseen programming problems
-Uses TF-IDF for text feature extraction
-Trained using classical ML models (Naive Bayes, Logistic Regression)
-Evaluated properly using Stratified Cross-Validation
-Exposed via a Flask REST API
-Simple and clean web-based UI
-
-# Tech Stack
-
-Language: Python
-ML Library: scikit-learn
-NLP: TF-IDF Vectorization
-Backend: Flask
-Frontend: HTML, CSS, JavaScript
-Model Persistence: joblib
-
-# Project Motivation
-
-In competitive programming platforms, problem difficulty is usually assigned manually.
-AutoJudge explores whether textual cues in a problem statement (keywords, algorithms, data structures) are sufficient to automatically predict difficulty.
-Examples:
-“sum of elements in an array” → Easy
-“shortest path in graph using BFS” → Medium
-“segment tree with lazy propagation” → Hard
+# Motivation
+Difficulty labels on competitive programming platforms are often:
+Subjective
+Platform-dependent
+Inconsistent across users
+This project investigates whether patterns in problem text (keywords, structure, terminology) can be used to estimate difficulty in an automated way.
 
 # Dataset
+Source: Competitive programming problem descriptions
+Size: 4112 problems
+Fields used:
+Title
+Description
+Input description
+Output description
+Labels:
+easy, medium, hard
+Numerical difficulty score (1–10 scale)
+Class Distribution
+Hard: ~47%
+Medium: ~34%
+Easy: ~19%
 
-Custom dataset created manually
-~90 problem statements
-Balanced across 3 classes:
-Easy
-Medium
-Hard
-Each entry contains:
-problem_statement,difficulty
+# Methodology
+1. Text Preprocessing
+Combined all textual fields into a single input
+Used TF-IDF vectorization
+Stopword removal
+Unigrams + bigrams (ngram_range=(1,2))
+Vocabulary size capped for stability
 
-This manual construction helped in understanding:
-Class overlap (especially Medium)
-Vocabulary patterns
-Realistic ML limitations
+2. Initial Classification Attempts
+Model 1: Multinomial Naive Bayes
+Simple baseline model
+Resulted in low accuracy due to overlapping vocabulary between difficulty levels
 
-# ML Pipeline
-1. Text Vectorization (TF-IDF)
+Model 2: Linear SVM
+Better suited for high-dimensional sparse text
+Used class balancing to address dataset imbalance
 
-We convert problem statements into numerical features using TF-IDF (Term Frequency–Inverse Document Frequency).
-Why TF-IDF?
-Emphasizes important keywords like graph, dp, segment tree
-Reduces impact of common words
-Well-suited for classical text classification
+Cross-validated accuracy (5-fold): ~47–50%
+This performance is consistent with expectations for text-only difficulty classification, where semantic overlap is high.
 
-2. Baseline Model — Multinomial Naive Bayes
+3. Regression Model (Numerical Difficulty)
+Instead of forcing hard class boundaries, a regression model was trained to predict a continuous difficulty score.
+Model: Linear regression (Ridge)
+Evaluation: Cross-validated RMSE
+Average RMSE: ~2.06
+This means predictions are, on average, within ~2 points of the true difficulty score — a reasonable result given the subjective nature of difficulty.
 
-We first trained a Multinomial Naive Bayes classifier.
-Why Naive Bayes?
-Fast
-Works well with text data
-Strong baseline for NLP tasks
+4. Score-to-Class Mapping
+The regression output is mapped to difficulty categories using interpretable thresholds:
+Score Range	Difficulty
+< 3.5	Easy
+3.5 – 6.5	Medium
+≥ 6.5	Hard
+The regression-based class is used as the final decision, as it is smoother and more informative than direct classification.
 
-Result:
-Accuracy around 65–70%
-Easy and Hard classes predicted well
-Medium class showed overlap issues (expected)
+5. Hybrid Rule-Based Refinement
+During testing, some obviously simple problems (e.g., “Find sum of elements in an array”) were occasionally predicted as Medium.
+This occurs because:
+The model only sees text
+It does not know constraints or intended trickiness
+Words like “array” and “sum” appear across difficulties
+To address this, a light rule-based override was added for universally trivial patterns (e.g., sum, max, reverse array).
+This creates a hybrid ML + rules system, commonly used in real-world NLP applications.
 
-3. Experiment — Logistic Regression
+# Web Application
+Backend: Flask
+Endpoint: /predict
+Input: JSON with problem statement
+Output:
+Final difficulty
+Predicted score
+A clean, minimal UI allows users to interactively test problem statements.
 
-We experimented with Logistic Regression to handle overlapping classes better.
-Observation:
-Accuracy fluctuated and sometimes decreased
-Medium class predictions were unstable on small data
+# Limitations (Important)
+Text-Only Input
+The model does not see constraints, time limits, or required optimizations
+Many problems become hard only due to constraints
+Subjective Labels
+Difficulty labels vary across platforms and users
+No universally correct “ground truth”
+Vocabulary Overlap
+Terms like array, graph, sum appear in problems of all difficulties
+Leads to ambiguity in classification
+Not a Judge Replacement
+AutoJudge estimates difficulty, it does not evaluate correctness or solutions
+These limitations are inherent to the problem, not implementation flaws.
 
-Conclusion:
-Increasing model complexity without enough data does not guarantee better performance.
-This reinforced the importance of data-first ML, not algorithm-first ML.
+# Key Takeaways
+Difficulty prediction from text is possible but imperfect
+Regression provides more meaningful insight than pure classification
+Hybrid systems outperform purely ML-based ones in edge cases
+Honest evaluation and limitation analysis are crucial in applied ML
 
-4. Proper Evaluation — Cross-Validation
+# Technologies Used
+Python
+Pandas
+Scikit-learn
+TF-IDF Vectorization
+Flask
+HTML / CSS / JavaScript
 
-Instead of relying on a single train-test split, we applied:
-Stratified 5-Fold Cross-Validation
-Why?
-Reduces randomness due to small dataset
-Ensures all classes appear in each fold
-Gives a more reliable estimate of performance
-
-Result:
-Average cross-validated accuracy ≈ 68%
-Stable across folds
-
-5. Final Model Choice
-
-After evaluation:
-Multinomial Naive Bayes + TF-IDF was selected as the final model
-Trained on 100% of the dataset
-Saved using joblib for reuse
-
-This follows the standard ML workflow:
-Evaluate with cross-validation → Train final model on all data → Deploy
+# Conclusion
+AutoJudge demonstrates that while programming problem difficulty cannot be perfectly inferred from text alone, statistical patterns do exist and can be leveraged effectively using machine learning. The project highlights both the potential and limitations of automated difficulty estimation and provides a realistic, end-to-end applied ML system.
 
 # Deployment Architecture
 User (Browser)
@@ -133,9 +153,3 @@ python app.py
 
 3. Open in browser
 http://127.0.0.1:5000/
-
-# Live Demo
-
-https://autojudge.onrender.com
-
-> Note: First request may take a few seconds due to free-tier cold start.
