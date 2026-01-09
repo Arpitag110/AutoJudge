@@ -153,3 +153,11 @@ python app.py
 
 3. Open in browser
 http://127.0.0.1:5000/
+
+# Report PDF
+Here is the Google drive link for the project report-
+https://drive.google.com/file/d/1VAlCp7iZnmBQHYOJ45MSU2coOWzZ1e30/view?usp=drivesdk
+
+# Demo Video
+Here is the Google drive link for demo video-
+https://drive.google.com/file/d/1YM7322yj1v0P1yKhIOYeplRwL8rsqmX5/view?usp=drivesdk
